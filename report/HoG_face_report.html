@@ -1,0 +1,248 @@
+<html>
+<head>
+<title>HoG face detection</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>  
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;	
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 1160px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+table td img {
+  text-align: center;
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1>Sikun LIN</h1>
+</div>
+</div>
+<div class="container">
+
+<h2>COMP5421 / Project 2 / HoG Face Detection with a Sliding Window</h2>
+
+<h3>1.1 Extract positive and random negative features</h3>
+<p>6,713 cropped 36x36 faces from 
+<a href="http://www.vision.caltech.edu/Image_Datasets/Caltech_10K_WebFaces/">Caltech Web Faces project</a> 
+and their reflected versions (in total 13436) are used as the positive data. For negative data, 36x36 patches 
+were randomly sampled from multi-scales non-face scenes, sample number was finally set to 85000. Then I extracted HoG features from those patches with the hog_cell_size = 4 and hog_cell_size = 3 (finally decide to use 4). Corresponding HoG features are as follows.</p>
+
+<div>
+<center>
+<table border=0 cellpadding="1" cellpadding="1">
+<tr>
+<td><center><a href="image/faceHoG.png"><img src="image/faceHoG.png" height="150" width="150"></a></center>
+<td><center><a href="image/faceHoG2.png"><img src="image/faceHoG2.png" height="150" width="150"></a></center>
+</tr>
+
+</table></center>
+<center><p style="font-size: 17px">Figure 1.face HoG visualization with cell size being 4 (left) and 3 (right)</center></p>
+</div>
+
+
+
+<h3>1.2 Train SVM classifier</h3>
+<p>A linear SVM classifier is trained from positive and negative features, with lambda = 0.0001.</p>
+
+ <div>
+<center>
+<table border=0 cellpadding="1" cellpadding="1">
+<tr>
+<td><center><a href="image/svm.png"><img src="image/svm.png"  height="350" width="350"></a></center>
+</tr>
+</table></center>
+<center><p style="font-size: 17px">Figure 2.How well the positive and negative features are separated</center></p>
+</div>
+
+<h3>1.3 Hard negative mining</h3>
+
+<p> Applied the trained SVM again to non_face_scenes, and add patches those above the THRESHOLD (set as 0) as hard negatives (need scale to the correct template size). Hard negative mining is useful to remove false positives, but also remove some correct predictions. 
+
+<h3>1.4 Detect faces on test set</h3>
+<p>Run the new SVM on the provided test set. When detecting faces on multi-scales images, the image downsample rate is set to 0.9. </p>
+
+ <div>
+<center>
+<table border=0 cellpadding="1" cellpadding="1">
+<tr>
+<td><center><a href="image/average_precision.png"><img src="image/average_precision.png" height="300" width="350"></a></center>
+<td><center><a href="image/2.png"><img src="image/2.png" height="300" width="350"></a></center>
+</tr>
+</table></center>
+<center><p style="font-size: 17px">Figure 3.Test results of face detection on given test set</center></p>
+</div>
+
+<p>The images below show part of the face detection results: some good ones, some with non-real faces, processed face, and some extremely bad ones</p>
+<div>
+<center>
+<table border=1 cellpadding="1" cellpadding="1">
+<tr>
+<td><center><a href="image/example.png"><img src="image/example.png" height="250" width="350"></a></center>
+<td><center><a href="image/good1.png"><img src="image/good1.png" height="250" width="350"></a></center>
+<td><center><a href="image/good2.png"><img src="image/good2.png" height="250" width="350"></a></center>
+</tr>
+
+<tr>
+<td><center><a href="image/good3.png"><img src="image/good3.png" height="250" width="350"></a></center>
+<td><center><a href="image/good4.png"><img src="image/good4.png" height="250" width="350"></a></center>
+<td><center><a href="image/non_human.png"><img src="image/non_human.png" height="250" width="350"></a></center>
+</tr>
+
+<tr>
+<td><center><a href="image/notreal1.png"><img src="image/notreal1.png" height="250" width="350"></a></center>
+<td><center><a href="image/notreal2.png"><img src="image/notreal2.png" height="250" width="350"></a></center>
+<td><center><a href="image/notreal3.png"><img src="image/notreal3.png" height="250" width="350"></a></center>
+</tr>
+
+<tr>
+<td><center><a href="image/processed.png"><img src="image/processed1.png" height="250" width="350"></a></center>
+<td><center><a href="image/bad1.png"><img src="image/bad1.png" height="250" width="350"></a></center>
+<td><center><a href="image/bad2.png"><img src="image/bad2.png" height="250" width="350"></a></center>
+</tr>
+
+</table></center>
+</div>
+
+<p>Extra test results:</p>
+<div>
+<center>
+<table border=1 cellpadding="1" cellpadding="1">
+<tr>
+<td><center><a href="image/extra1.png"><img src="image/extra1.png" height="250" width="492"></a></center>
+<td><center><a href="image/extra2.png"><img src="image/extra2.png" height="250" width="492"></a></center>
+</tr>
+
+</table></center>
+</div>
+
+
+<!-- <h4>Conclusion</h4>
+<p></p>
+ -->
+
+
+</body>
+</html>
+
